@@ -1,0 +1,43 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "admins": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+      }
+    },
+    "productsPublic": {
+      ".read": true,
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      "$productId": {
+        ".validate": "newData.hasChildren(['name', 'price', 'category', 'description', 'active']) && newData.child('name').isString() && newData.child('name').val().length <= 120 && newData.child('price').isNumber() && newData.child('price').val() >= 0 && newData.child('category').isString() && newData.child('description').isString() && newData.child('description').val().length <= 600 && newData.child('active').isBoolean()"
+      }
+    },
+    "productSecrets": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+    "settings": {
+      ".read": true,
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+    },
+    "orders": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      "$orderId": {
+        ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || (!data.exists() && newData.child('userId').val() === auth.uid && newData.child('status').val() === 'pending' && !newData.child('downloadUrl').exists() && !newData.child('reviewedBy').exists() && !newData.child('reviewedAt').exists() && newData.child('transactionId').isString() && newData.child('transactionId').val().length >= 4 && newData.child('transactionId').val().length <= 100 && newData.child('senderNumber').isString() && newData.child('senderNumber').val().length >= 6 && newData.child('senderNumber').val().length <= 25 && newData.child('amount').isNumber() && newData.child('amount').val() >= 0 && newData.child('productId').isString() && newData.child('productName').isString() && newData.child('paymentMethod').isString()))",
+        ".validate": "newData.hasChildren(['userId', 'productId', 'productName', 'amount', 'paymentMethod', 'senderNumber', 'transactionId', 'status', 'createdAt']) && newData.child('status').isString() && (newData.child('status').val() === 'pending' || newData.child('status').val() === 'approved' || newData.child('status').val() === 'rejected')"
+      }
+    },
+    "ordersByUser": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).val() === true)",
+        "$orderId": {
+          ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || (!data.exists() && auth.uid === $uid && newData.child('userId').val() === auth.uid && newData.child('status').val() === 'pending' && !newData.child('downloadUrl').exists() && !newData.child('reviewedBy').exists() && !newData.child('reviewedAt').exists() && newData.child('transactionId').isString() && newData.child('transactionId').val().length >= 4 && newData.child('senderNumber').isString() && newData.child('senderNumber').val().length >= 6))",
+          ".validate": "newData.hasChildren(['userId', 'productId', 'productName', 'amount', 'paymentMethod', 'senderNumber', 'transactionId', 'status', 'createdAt']) && newData.child('userId').val() === $uid"
+        }
+      }
+    }
+  }
+}
